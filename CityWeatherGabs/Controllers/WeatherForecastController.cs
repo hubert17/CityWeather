@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using CityWeatherGabs.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -10,30 +13,30 @@ namespace CityWeatherGabs.Controllers
     [ApiController]
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
-    {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
+    {        
         private readonly ILogger<WeatherForecastController> _logger;
+        private readonly IWeatherSvc _weatherSvc;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IWeatherSvc weatherSvc)
         {
             _logger = logger;
+            _weatherSvc = weatherSvc;
         }
 
-        [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        [HttpPost]
+        public async Task<IActionResult> GetWeather(IFormFile csvFile)
         {
-            var rng = new Random();
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            if (csvFile == null || csvFile.Length == 0)
+                return BadRequest();
+
+            using (var reader = new StreamReader(csvFile.OpenReadStream()))
             {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = rng.Next(-20, 55),
-                Summary = Summaries[rng.Next(Summaries.Length)]
-            })
-            .ToArray();
+                var csvCities = await reader.ReadToEndAsync();
+                var data = await _weatherSvc.GetByCityNames(csvCities);
+                return Ok(data);
+            }
         }
     }
 }
+
+
