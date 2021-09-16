@@ -29,7 +29,7 @@ export default {
             if(!this.csvFile) return;
 
             let formData = new FormData();
-            formData.append("csvFiles[0]", this.csvFile);
+            formData.append("csvFile", this.csvFile);
             axios.post('https://localhost:44366/WeatherForecast', formData).then((response) => {
                 this.cityWeathers = response.data
             })

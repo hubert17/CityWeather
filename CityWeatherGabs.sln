@@ -6,14 +6,15 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CityWeather.WebApi", "WebApi\CityWeather.WebApi.csproj", "{E9425DDB-04E2-4EC8-880D-2D3E55B959E2}"
 	ProjectSection(ProjectDependencies) = postProject
 		{65CBA968-02C6-4F2E-92BA-F10541C2A0D0} = {65CBA968-02C6-4F2E-92BA-F10541C2A0D0}
+		{BDAA88C1-8F62-4A81-9691-396169C74AD0} = {BDAA88C1-8F62-4A81-9691-396169C74AD0}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CityWeather.Infrastructure", "Infrastructure\CityWeather.Infrastructure\CityWeather.Infrastructure.csproj", "{65CBA968-02C6-4F2E-92BA-F10541C2A0D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CityWeather.Infrastructure", "Infrastructure\CityWeather.Infrastructure.csproj", "{65CBA968-02C6-4F2E-92BA-F10541C2A0D0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{BDAA88C1-8F62-4A81-9691-396169C74AD0} = {BDAA88C1-8F62-4A81-9691-396169C74AD0}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CityWeather.Application", "Application\CityWeather.Application\CityWeather.Application.csproj", "{BDAA88C1-8F62-4A81-9691-396169C74AD0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CityWeather.Application", "Application\CityWeather.Application.csproj", "{BDAA88C1-8F62-4A81-9691-396169C74AD0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

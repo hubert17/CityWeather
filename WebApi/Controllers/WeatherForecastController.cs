@@ -24,12 +24,12 @@ namespace CityWeatherWebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetWeather(IFormCollection csvFiles)
+        public async Task<IActionResult> GetWeather(IFormFile csvFile)
         {
-            if (csvFiles.Files[0] == null || csvFiles.Files[0].Length == 0)
+            if (csvFile == null)
                 return BadRequest();
 
-            using (var reader = new StreamReader(csvFiles.Files[0].OpenReadStream()))
+            using (var reader = new StreamReader(csvFile.OpenReadStream()))
             {
                 var csvCities = await reader.ReadToEndAsync();
                 var data = await _weatherSvc.GetByCityNames(csvCities);

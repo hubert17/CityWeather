@@ -11,8 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Application\CityWeather.Application\CityWeather.Application.csproj" />
-    <ProjectReference Include="..\Infrastructure\CityWeather.Infrastructure\CityWeather.Infrastructure.csproj" />
+    <ProjectReference Include="..\Application\CityWeather.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\CityWeather.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
