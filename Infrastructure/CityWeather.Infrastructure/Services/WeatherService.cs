@@ -19,7 +19,7 @@ namespace CityWeather.Infrastructure.Services
         public async Task<List<WeatherDto>> GetByCityNames(string csvCities)
         {
             var apiKey = "4309f783f320a86bfdbba7276e3f0f9e";
-            var apiUrl = "https://api.openweathermap.org/data/2.5/weather?appid=" + apiKey + "&q=";
+            var apiUrl = "https://api.openweathermap.org/data/2.5/weather?appid=" + apiKey + "&units=metric&q=";
 
             List<City> cities;
 
