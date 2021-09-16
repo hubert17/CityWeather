@@ -1,5 +1,4 @@
-﻿using CityWeatherGabs.Dtos;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,15 +8,13 @@ using CsvHelper;
 using System.Globalization;
 using System.IO;
 using CsvHelper.Configuration.Attributes;
+using CityWeather.Application.Interfaces;
+using CityWeather.Application.Dtos;
 
-namespace CityWeatherGabs.Services
+namespace CityWeather.Infrastructure.Services
 {
-    public interface IWeatherSvc
-    {
-        Task<List<WeatherDto>> GetByCityNames(string csvCities);
-    }
 
-    public class WeatherSvc : IWeatherSvc
+    public class WeatherService : IWeatherService
     {
         public async Task<List<WeatherDto>> GetByCityNames(string csvCities)
         {
@@ -38,7 +35,7 @@ namespace CityWeatherGabs.Services
             {
                 foreach(var city in cities)
                 {
-                    var result = await client.DownloadStringTaskAsync(new System.Uri(apiUrl + city.Name));
+                    var result = await client.DownloadStringTaskAsync(new Uri(apiUrl + city.Name));
                     data.Add(JsonConvert.DeserializeObject<WeatherDto>(result));
                 }                                  
             }
@@ -47,6 +44,7 @@ namespace CityWeatherGabs.Services
         }
     }
 
+    // For CsvHelper
     public class City
     {
         [Name("City Name")]
