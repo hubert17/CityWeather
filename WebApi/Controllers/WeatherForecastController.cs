@@ -24,7 +24,7 @@ namespace CityWeatherWebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetWeather(IFormFile csvFile, string apiKey = "")
+        public async Task<IActionResult> GetWeather(IFormFile csvFile, string apiKey = "") // APIkey is optional 
         {
             if (csvFile == null)
                 return BadRequest();
