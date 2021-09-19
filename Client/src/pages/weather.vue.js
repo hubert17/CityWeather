@@ -13,7 +13,8 @@ export default {
       return {
           cityWeathers: [],
           csvFile: null,
-          showSample: false
+          showSample: false,
+          loading: false
       };
     },
 
@@ -21,12 +22,15 @@ export default {
       getWeather() {
           if(!this.csvFile) return;
 
+          this.loading = true;
           let formData = new FormData();
           formData.append("csvFile", this.csvFile);
           axios.post('https://gabscityweatherapi.azurewebsites.net/WeatherForecast', formData).then((response) => {
-              this.cityWeathers = response.data
+              this.cityWeathers = response.data;
+              this.loading = false;
           })
           .catch((e) => {
+              this.loading = false;
               alert('Oops! Server error.')
           })
       }
@@ -38,6 +42,10 @@ export default {
     template: /*html*/ `
 
 <v-container class=${styles}>
+
+    <v-overlay :value="loading">
+      <v-progress-circular indeterminate size="64" ></v-progress-circular>
+    </v-overlay>
 
       <v-row v-if="cityWeathers.length === 0" align="center" justify="center" style="height:calc(100vh - 200px);">
         <v-col class="text-center" style="max-width: 400px;">
