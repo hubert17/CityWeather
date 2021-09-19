@@ -10,16 +10,18 @@ using System.IO;
 using CsvHelper.Configuration.Attributes;
 using CityWeather.Application.Interfaces;
 using CityWeather.Application.Dtos;
+using TimeZoneConverter;
 
 namespace CityWeather.Infrastructure.Services
 {
 
     public class WeatherService : IWeatherService
     {
-        public async Task<List<WeatherDto>> GetByCityNames(string csvCities)
+        public async Task<List<WeatherDailyDto>> GetByCityNames(string csvCities)
         {
             var apiKey = "4309f783f320a86bfdbba7276e3f0f9e";
             var apiUrl = "https://api.openweathermap.org/data/2.5/weather?appid=" + apiKey + "&units=metric&q=";
+            var apiUrlDaily = "https://api.openweathermap.org/data/2.5/onecall?appid=" + apiKey + "&units=metric&exclude=minutely,hourly,alerts"; // &lat=43.7001&lon=-79.4163"
 
             List<City> cities;
 
@@ -29,14 +31,38 @@ namespace CityWeather.Infrastructure.Services
                 cities = csv.GetRecords<City>().ToList();
             }
 
-            var data = new List<WeatherDto>();
+            var data = new List<WeatherDailyDto>();
 
             using (var client = new WebClient())
             {
                 foreach(var city in cities)
                 {
-                    var result = await client.DownloadStringTaskAsync(new Uri(apiUrl + city.Name));
-                    data.Add(JsonConvert.DeserializeObject<WeatherDto>(result));
+                    try
+                    {
+                        var result = await client.DownloadStringTaskAsync(new Uri(apiUrl + city.Name));
+                        var currentWeather = JsonConvert.DeserializeObject<WeatherDto>(result); // Get city coordinates
+                        result = await client.DownloadStringTaskAsync(new Uri($"{apiUrlDaily}&lat={currentWeather.coord.lat}&lon={currentWeather.coord.lon}"));
+                        var dailyWeather = JsonConvert.DeserializeObject<WeatherDailyDto>(result);
+
+                        dailyWeather.name = city.Name;
+
+                        DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(dailyWeather.current.dt);
+                        DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(dateTimeOffset.UtcDateTime, TimeZoneInfo.FindSystemTimeZoneById(TZConvert.IanaToWindows(dailyWeather.timezone)));
+                        dailyWeather.current.dtHumanized = dateTime.ToString("ddd, d MMMM hh:mm tt");
+                        dailyWeather.daily.ForEach(x =>
+                        {
+                            DateTimeOffset dateTimeOffset = DateTimeOffset.FromUnixTimeSeconds(x.dt);
+                            DateTime dateTime = TimeZoneInfo.ConvertTimeFromUtc(dateTimeOffset.UtcDateTime, TimeZoneInfo.FindSystemTimeZoneById(TZConvert.IanaToWindows(dailyWeather.timezone)));
+                            x.dtHumanizedDay = dateTime.ToString("dddd");
+                        });
+
+                        data.Add(dailyWeather);
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
                 }                                  
             }
 
