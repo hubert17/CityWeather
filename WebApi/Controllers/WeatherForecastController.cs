@@ -24,7 +24,7 @@ namespace CityWeatherWebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetWeather(IFormFile csvFile)
+        public async Task<IActionResult> GetWeather(IFormFile csvFile, string apiKey = "")
         {
             if (csvFile == null)
                 return BadRequest();
@@ -32,7 +32,7 @@ namespace CityWeatherWebApi.Controllers
             using (var reader = new StreamReader(csvFile.OpenReadStream()))
             {
                 var csvCities = await reader.ReadToEndAsync();
-                var data = await _weatherSvc.GetByCityNames(csvCities);
+                var data = await _weatherSvc.GetByCityNames(csvCities, apiKey);
                 return Ok(data);
             }
         }

@@ -8,9 +8,9 @@ const store = new Vuex.Store({
         name: "City Weather",
         themeColor: "blue-grey", // https://vuetifyjs.com/en/styles/colors/#material-colors
         baseUrl: "",
-        apiBaseUrl: "https://api45gabs.azurewebsites.net",
+        apiBaseUrl: "",
         imgBaseUrl: "",
-        storageName: 'hellovuegabs',
+        storageName: 'cityweathergabs123',
         clientId: '951799207669-5nv7cv480db7drqavq7irtcqkcna6flh.apps.googleusercontent.com', // https://developers.google.com/identity/sign-in/web/sign-in
         newsApiKey: "", // https://newsapi.org/register
         recaptchaKey: "6LcpHYQbAAAAAKcuAGS-Q_hlaVFAjHAkyQIUycIw"

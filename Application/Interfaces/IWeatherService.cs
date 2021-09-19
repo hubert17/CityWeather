@@ -9,6 +9,6 @@ namespace CityWeather.Application.Interfaces
 {
     public interface IWeatherService
     {
-        Task<List<WeatherDailyDto>> GetByCityNames(string csvCities);
+        Task<List<WeatherDailyDto>> GetByCityNames(string csvCities, string apiKey = "");
     }
 }

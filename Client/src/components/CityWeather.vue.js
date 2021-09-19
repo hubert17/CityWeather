@@ -6,6 +6,7 @@ export default {
 
     data() {
         return {
+            owBaseImageUrl: 'https://openweathermap.org/img/wn/',
             dialog: {show: false, title: null, text: null}
         };
       },
@@ -27,7 +28,7 @@ export default {
           {{Math.round(weather.current.temp)}}&deg;C
         </v-col>
         <v-col cols="6">
-          <v-img :src="'http://openweathermap.org/img/wn/' + weather.current.weather[0].icon + '@2x.png'" :alt="weather.current.weather[0].main" width="92" ></v-img>
+          <v-img :src="owBaseImageUrl + weather.current.weather[0].icon + '@2x.png'" :alt="weather.current.weather[0].main" width="92" ></v-img>
         </v-col>
       </v-row>
     </v-card-text>
@@ -48,7 +49,7 @@ export default {
 
     <v-list class="transparent"> <v-list-item v-for="daily in weather.daily" :key="daily.day" >
         <v-list-item-title>{{ daily.dtHumanizedDay }}</v-list-item-title>
-        <v-img :src="'http://openweathermap.org/img/wn/' + daily.weather[0].icon + '.png'" :alt="daily.weather[0].main" ></v-img>
+        <v-img :src="owBaseImageUrl+ daily.weather[0].icon + '.png'" :alt="daily.weather[0].main" ></v-img>
         <v-list-item-subtitle class="text-right"> {{ Math.round(daily.temp.max) }}&deg;/{{ Math.round(daily.temp.min) }}&deg; </v-list-item-subtitle>
       </v-list-item>
     </v-list>

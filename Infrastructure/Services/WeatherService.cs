@@ -17,9 +17,9 @@ namespace CityWeather.Infrastructure.Services
 
     public class WeatherService : IWeatherService
     {
-        public async Task<List<WeatherDailyDto>> GetByCityNames(string csvCities)
+        public async Task<List<WeatherDailyDto>> GetByCityNames(string csvCities, string apiKey = "")
         {
-            var apiKey = "4309f783f320a86bfdbba7276e3f0f9e";
+            apiKey = string.IsNullOrWhiteSpace(apiKey) ? "4309f783f320a86bfdbba7276e3f0f9e" : apiKey;
             var apiUrl = "https://api.openweathermap.org/data/2.5/weather?appid=" + apiKey + "&units=metric&q=";
             var apiUrlDaily = "https://api.openweathermap.org/data/2.5/onecall?appid=" + apiKey + "&units=metric&exclude=minutely,hourly,alerts"; // &lat=43.7001&lon=-79.4163"
 
