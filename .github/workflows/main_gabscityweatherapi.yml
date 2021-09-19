@@ -55,3 +55,12 @@ jobs:
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_95F003C020FF4EB78814F8C3E1DF7737 }}
           package: .
+
+  publish-client:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Deploy 🚀
+      uses: JamesIves/github-pages-deploy-action@4.1.5
+      with:
+        branch: gh-pages # The branch the action should deploy to.
+        folder: Client # The folder the action should deploy.
