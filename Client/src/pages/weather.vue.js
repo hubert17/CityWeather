@@ -13,6 +13,7 @@ export default {
       return {
           cityWeathers: [],
           csvFile: null,
+          showSample: false
       };
     },
 
@@ -22,10 +23,10 @@ export default {
 
           let formData = new FormData();
           formData.append("csvFile", this.csvFile);
-          axios.post('https://localhost:44366/WeatherForecast', formData).then((response) => {
+          axios.post('https://gabscityweatherapi.azurewebsites.net/WeatherForecast', formData).then((response) => {
               this.cityWeathers = response.data
           })
-          .catch(() => {
+          .catch((e) => {
               alert('Oops! Server error.')
           })
       }
@@ -39,10 +40,11 @@ export default {
 <v-container class=${styles}>
 
       <v-row v-if="cityWeathers.length === 0" align="center" justify="center" style="height:calc(100vh - 200px);">
-        <v-col style="max-width: 400px;" class="text-center">
-         <h2>City Weather App</h2>
-         <h3 class="subtitle-2 mb-5">by Bernard Gabon</h3>
-         <v-file-input v-model="csvFile" label="Upload CSV File" accept=".csv" filled @change="getWeather"></v-file-input>
+        <v-col class="text-center" style="max-width: 400px;">
+         <h2 class="text-h4">City Weather App</h2>
+         <h3 class="text-subtitle-2 mb-5">by Bernard Gabon</h3>
+         <v-file-input v-model="csvFile" label="Upload CSV File" accept=".csv" filled @change="getWeather" @click="showSample=true" hide-details></v-file-input>
+          <a v-if="showSample" href="https://drive.google.com/u/0/uc?id=11ITbYL82IRF-uhpt1erhU42xUEAosOXX&export=download" class="text-caption">Sample Cities CSV</a>
         </v-col>
       </v-row>
 
