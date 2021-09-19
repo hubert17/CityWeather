@@ -63,7 +63,7 @@ export default {
       <v-card>
         <v-toolbar dark color="primary" >
           <v-btn icon dark @click="dialog.show = false" > <v-icon>mdi-close</v-icon> </v-btn>
-          <v-toolbar-title>{{dialog.title}} </v-toolbar-title> </v-toolbar-items>
+          <v-toolbar-title>{{dialog.title}} [JSON Weather Data]</v-toolbar-title> </v-toolbar-items>
         </v-toolbar>
         <v-card-text class="mt-5">
           <code>{{dialog.text}}</code>
