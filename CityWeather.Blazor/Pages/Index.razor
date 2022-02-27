@@ -1,7 +1,153 @@
 ﻿@page "/"
+@inject ISnackbar Snackbar
+<style>
+    .drag-drop-zone {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all .4s;
+        min-height: 150px;
+    }
 
-<h1>Hello, world!</h1>
+    .drag-drop-input {
+        position: absolute;
+        width: 100%;
+        height: 90%;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 2;
+    }
 
-Welcome to your new app.
+    .drag-enter {
+        box-shadow: var(--mud-elevation-10);
+    }
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+    .list {
+        padding: 2em;
+        min-width: 100%;
+    }
+</style>
+
+<div class="row">
+    @if (isLoading || listresultweather == null)
+    {
+        <div class="col-md-12">
+            <MudProgressLinear Class="mt-3 mb-3" Indeterminate Color="Color.Primary" Size="Size.Small"/>
+        </div>
+    }
+    <div class="col-md-12 p-4">
+        @if (!hideInput)
+        {
+            <MudPaper Elevation="25" @ondragenter="@(()=>_dragEnterStyle="drag-enter")"
+                      @ondragleave="@(()=>_dragEnterStyle=null)"
+                      @ondragend="@(()=>_dragEnterStyle=null)"
+                      Class=@("drag-drop-zone "+ _dragEnterStyle)>
+
+                <InputFile OnChange="OnInputFileChanged" class="drag-drop-input" />
+
+                @if (fileNames.Count() == 0)
+                {
+                    <MudText Typo="Typo.subtitle1">Drag and drop the CSV file here or click to browse</MudText>
+                }
+                else
+                {
+                    <MudList Style="padding:2em;width:100%;" Dense="true">
+                        @foreach (var file in fileNames)
+                        {
+                            <MudListItem @key="@file">
+                                <MudChip Color="Color.Dark"
+                                         Style="width:60px; overflow:hidden;"
+                                         Text="@(file.Split(".").Last())" />
+                                @file
+                            </MudListItem>}
+                    </MudList>
+                }
+            </MudPaper>
+        }
+    </div>
+    <div class="col-md-12">
+        @if (listresultweather != null && listresultweather.Count > 0)
+        {
+            <MudCarousel Class="mud-width-full" Style="height:90vh;overflow:scroll" ShowArrows AutoCycle="false" ShowBullets="false" TData="object">
+                @foreach (var i in listresultweather)
+                {
+                    <MudCarouselItem Class="pl-5 pr-5" Transition="Transition.Slide">
+                        <MudPaper Elevation="25" Class="p-3 ml-5 mr-5">
+                            <MudText Typo="Typo.h5">@i.name</MudText>
+                            <MudText Typo="Typo.subtitle1">@DateTime.Now.AddSeconds(i.timezone_offset).ToString("ddd, dd MMMM hh:mm tt")</MudText>
+                            <MudText Typo="Typo.h2">@Math.Round(i.current.temp, 0) °C</MudText>
+                            <MudDivider Class="mt-3 mb-3" />
+                            @if (i.current.sunrise == 1)
+                            {
+                                <MudIcon Icon="@Icons.Rounded.Cloud" />
+                            }
+                            else if (i.current.sunset == 1)
+                            {
+                                <MudIcon Icon="@Icons.Rounded.WbSunny" />
+                            }
+                            <div class="row">
+                                @foreach (var day in i.daily)
+                                {
+                                    <div class="col-md-1 m-auto">
+                                        <MudText>@day.dtHumanizedDay</MudText>
+                                        <MudText>@day.clouds °C</MudText>
+                                        <MudText>@day.feels_like.day°</MudText>
+                                        <MudDivider />
+                                    </div>
+                                }
+                            </div>
+                        </MudPaper>
+                    </MudCarouselItem>
+                }
+            </MudCarousel>
+        }
+    </div>
+</div>
+@code {
+    @using Refit
+    IDataAccess db;
+    protected override void OnInitialized()
+    {
+        db = RestService.For<IDataAccess>("https://localhost:44366/WeatherForecast");
+
+    }
+    bool isLoading = false;
+    bool hideInput = false;
+    public List<WeatherDailyDto> listresultweather { get; set; } = new();
+    string _dragEnterStyle;
+    IList<string> fileNames = new List<string>();
+    List<string[]> csv = new();
+    async Task OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        isLoading = true;
+        listresultweather = null;
+        await InvokeAsync(StateHasChanged);
+        var files = e.GetMultipleFiles();
+        fileNames = files.Select(f => f.Name).ToList();
+
+        var singleFile = e.File;
+        Regex regex = new Regex(".+\\.csv", RegexOptions.Compiled);
+        if (!regex.IsMatch(singleFile.Name))
+        {
+            //show error invalidad format file
+            Snackbar.Add("File not supported.");
+        }
+        else
+        {
+            using (var reader = new StreamReader(singleFile.OpenReadStream()))
+            {
+                var csvCities = await reader.ReadToEndAsync();
+                var postData = new Application.StringViewModel();
+                postData.Data = csvCities;
+                listresultweather = new();
+                listresultweather = await db.GetWeather2(postData);
+                await InvokeAsync(StateHasChanged);
+            }
+
+        }
+        isLoading = false;
+        hideInput = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+}
