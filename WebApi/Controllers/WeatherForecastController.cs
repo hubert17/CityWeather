@@ -30,7 +30,6 @@ namespace CityWeatherWebApi.Controllers
         {
             if (csvFile == null)
                 return BadRequest();
-
             using (var reader = new StreamReader(csvFile.OpenReadStream()))
             {
                 var csvCities = await reader.ReadToEndAsync();
@@ -38,16 +37,7 @@ namespace CityWeatherWebApi.Controllers
                 return Ok(data);
             }
         }
-        [HttpPost("GetWeather2")]
-        public async Task<IActionResult> GetWeather2(StringViewModel str)
-{
-            var data = await _weatherSvc.GetByCityNames(str.Data, "");
-            foreach (var i in data)
-            {
-                Console.WriteLine(i.timezone);
-            }
-            return Ok(data);
-        }
+        
     }
 }
 

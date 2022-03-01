@@ -17,6 +17,10 @@
         cursor: pointer;
         z-index: 2;
     }
+    .drag-drop-input-disabled {
+        position: absolute;
+        display:none;
+    }
 
     .drag-enter {
         box-shadow: var(--mud-elevation-10);
@@ -32,39 +36,21 @@
     @if (isLoading || listresultweather == null)
     {
         <div class="col-md-12">
-            <MudProgressLinear Class="mt-3 mb-3" Indeterminate Color="Color.Primary" Size="Size.Small"/>
+            <MudProgressLinear Class="mt-3 mb-3" Indeterminate Color="Color.Primary" Size="Size.Small" />
         </div>
     }
+
     <div class="col-md-12 p-4">
-        @if (!hideInput)
-        {
-            <MudPaper Elevation="25" @ondragenter="@(()=>_dragEnterStyle="drag-enter")"
-                      @ondragleave="@(()=>_dragEnterStyle=null)"
-                      @ondragend="@(()=>_dragEnterStyle=null)"
-                      Class=@("drag-drop-zone "+ _dragEnterStyle)>
+        <MudPaper Style="@(isLoading || (listresultweather != null && listresultweather.Count > 0) ? "display:none" : "")" Elevation="25" @ondragenter="@(()=>_dragEnterStyle="drag-enter")"
+                  @ondragleave="@(()=>_dragEnterStyle=null)"
+                  @ondragend="@(()=>_dragEnterStyle=null)"
+                  Class=@("drag-drop-zone "+ _dragEnterStyle)>
 
-                <InputFile OnChange="OnInputFileChanged" class="drag-drop-input" />
-
-                @if (fileNames.Count() == 0)
-                {
-                    <MudText Typo="Typo.subtitle1">Drag and drop the CSV file here or click to browse</MudText>
-                }
-                else
-                {
-                    <MudList Style="padding:2em;width:100%;" Dense="true">
-                        @foreach (var file in fileNames)
-                        {
-                            <MudListItem @key="@file">
-                                <MudChip Color="Color.Dark"
-                                         Style="width:60px; overflow:hidden;"
-                                         Text="@(file.Split(".").Last())" />
-                                @file
-                            </MudListItem>}
-                    </MudList>
-                }
-            </MudPaper>
-        }
+            <InputFile OnChange="OnInputFileChanged" class="@(isLoading ? "drag-drop-input-disabled" : "drag-drop-input")" />
+            <MudText Typo="Typo.subtitle1" Class="font-rio">Drag and drop the CSV file here or click to browse</MudText>
+        </MudPaper>
     </div>
+
     <div class="col-md-12">
         @if (listresultweather != null && listresultweather.Count > 0)
         {
@@ -73,9 +59,9 @@
                 {
                     <MudCarouselItem Class="pl-5 pr-5" Transition="Transition.Slide">
                         <MudPaper Elevation="25" Class="p-3 ml-5 mr-5">
-                            <MudText Typo="Typo.h5">@i.name</MudText>
-                            <MudText Typo="Typo.subtitle1">@DateTime.Now.AddSeconds(i.timezone_offset).ToString("ddd, dd MMMM hh:mm tt")</MudText>
-                            <MudText Typo="Typo.h2">@Math.Round(i.current.temp, 0) °C</MudText>
+                            <MudText Color="Color.Primary" Class="font-rio" Typo="Typo.h5">@i.name</MudText>
+                            <MudText Class="font-rio" Typo="Typo.subtitle1">@DateTime.Now.AddSeconds(i.timezone_offset).ToString("ddd, dd MMMM hh:mm tt")</MudText>
+                            <MudText Color="Color.Primary" Class="font-rio" Typo="Typo.h2">@Math.Round(i.current.temp, 0) °C</MudText>
                             <MudDivider Class="mt-3 mb-3" />
                             @if (i.current.sunrise == 1)
                             {
@@ -89,10 +75,10 @@
                                 @foreach (var day in i.daily)
                                 {
                                     <div class="col-md-1 m-auto">
-                                        <MudText>@day.dtHumanizedDay</MudText>
-                                        <MudText>@day.clouds °C</MudText>
-                                        <MudText>@day.feels_like.day°</MudText>
-                                        <MudDivider />
+                                        <MudText Color="Color.Primary" Class="font-rio">@day.dtHumanizedDay</MudText>
+                                        <MudText Class="font-rio">@day.clouds °C</MudText>
+                                        <MudText Class="font-rio">@day.feels_like.day°</MudText>
+                                        <MudDivider Class="mt-2 mb-2"/>
                                     </div>
                                 }
                             </div>
@@ -104,49 +90,30 @@
     </div>
 </div>
 @code {
-    @using Refit
-    IDataAccess db;
-    protected override void OnInitialized()
-    {
-        db = RestService.For<IDataAccess>("https://localhost:44366/WeatherForecast");
+    @using System.Net.Http.Headers
+    @inject HttpClient Http
 
-    }
     bool isLoading = false;
-    bool hideInput = false;
     public List<WeatherDailyDto> listresultweather { get; set; } = new();
     string _dragEnterStyle;
-    IList<string> fileNames = new List<string>();
-    List<string[]> csv = new();
+    long maxFileSize = 1024 * 1024 * 15;
     async Task OnInputFileChanged(InputFileChangeEventArgs e)
     {
-        isLoading = true;
-        listresultweather = null;
-        await InvokeAsync(StateHasChanged);
-        var files = e.GetMultipleFiles();
-        fileNames = files.Select(f => f.Name).ToList();
 
         var singleFile = e.File;
-        Regex regex = new Regex(".+\\.csv", RegexOptions.Compiled);
-        if (!regex.IsMatch(singleFile.Name))
-        {
-            //show error invalidad format file
-            Snackbar.Add("File not supported.");
-        }
-        else
-        {
-            using (var reader = new StreamReader(singleFile.OpenReadStream()))
-            {
-                var csvCities = await reader.ReadToEndAsync();
-                var postData = new Application.StringViewModel();
-                postData.Data = csvCities;
-                listresultweather = new();
-                listresultweather = await db.GetWeather2(postData);
-                await InvokeAsync(StateHasChanged);
-            }
+        using var content = new MultipartFormDataContent();
+        var fileContent = new StreamContent(singleFile.OpenReadStream(maxFileSize));
+        fileContent.Headers.ContentType = new MediaTypeHeaderValue(singleFile.ContentType);
+        content.Add(content: fileContent, name: "\"csvFile\"", fileName: singleFile.Name);
 
-        }
+        isLoading = true;
+        listresultweather = null;
+        await Task.Delay(1000);
+        await InvokeAsync(StateHasChanged);
+
+        var postResult = await Http.PostAsync("https://localhost:44366/WeatherForecast", content);
+        listresultweather = await postResult.Content.ReadFromJsonAsync<List<WeatherDailyDto>>();
         isLoading = false;
-        hideInput = true;
         await InvokeAsync(StateHasChanged);
     }
 

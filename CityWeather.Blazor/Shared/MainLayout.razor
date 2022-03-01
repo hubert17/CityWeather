@@ -1,17 +1,134 @@
 ﻿@inherits LayoutComponentBase
-<MudThemeProvider/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
+<MudThemeProvider Theme="currentTheme" />
 
 <MudLayout>
-    <MudAppBar Elevation="1">
-        <MudText Typo="Typo.h5" Class="ml-3">City Weather</MudText>
+    <MudAppBar Dense Elevation="25" Fixed>
+        <MudText Color="Color.Inherit" Typo="Typo.h5" Class="font-weight-bolder ml-3 font-rio">City Weather</MudText>
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+        <MudHidden Breakpoint="Breakpoint.Xs">
+            <MudColorPicker DisableDragEffect @ref="colorPicker" Style="display:none" Value="Core.PrimaryColor" @bind-Text="Core.PrimaryColor" AllowKeyboardInput="false" ValueChanged="ColorValueChanged" DisableInputs />
+        </MudHidden>
+        @if (currentTheme == Core.defaultTheme)
+        {
+            <MudTooltip Text="Theme Color">
+                <MudIconButton OnClick="@(()=> colorPicker.Open())" Icon="@Icons.Material.Rounded.Colorize" Color="Color.Inherit" />
+            </MudTooltip>
+        }
+        <MudTooltip Text="@(currentTheme == Core.defaultTheme ? "Switch to dark mode" : "Switch to light mode")">
+            <MudIconButton Icon="@(currentTheme == darkTheme ? Icons.Rounded.Brightness7 : Icons.Rounded.Brightness4)" Color="Color.Inherit" OnClick="DarkMode" />
+        </MudTooltip>
     </MudAppBar>
     <MudMainContent>
         <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="pt-4">
+            <MudHidden Breakpoint="Breakpoint.SmAndUp">
+                <MudColorPicker DisableDragEffect @ref="colorPicker" Style="display:none" Value="Core.PrimaryColor" @bind-Text="Core.PrimaryColor" AllowKeyboardInput="false" ValueChanged="ColorValueChanged" DisableInputs />
+            </MudHidden>
             @Body
         </MudContainer>
     </MudMainContent>
 </MudLayout>
+
+@code {
+    MudColorPicker colorPicker;
+    protected override async Task OnInitializedAsync()
+    {
+        Core.PrimaryColor = await localdb.GetItemAsStringAsync("theme_color");
+        if (string.IsNullOrEmpty(Core.PrimaryColor))
+        {
+            Core.PrimaryColor = "#4a489c";
+            await localdb.SetItemAsStringAsync("theme_color", Core.PrimaryColor);
+        }
+        Core.defaultTheme = new MudTheme()
+        {
+            Palette = new Palette()
+            {
+                AppbarBackground = Core.PrimaryColor,
+                Primary = Core.PrimaryColor,
+                DrawerText = "#ffffff",
+                HoverOpacity = 0.3,
+            }
+        };
+        var darkmode = await localdb.GetItemAsStringAsync("darkmode");
+        if (darkmode == null)
+        {
+            currentTheme = Core.defaultTheme;
+        }
+        else
+        {
+            currentTheme = darkTheme;
+        }
+    }
+    async Task ColorValueChanged()
+    {
+        await localdb.SetItemAsStringAsync("theme_color", Core.PrimaryColor);
+
+        Core.PrimaryColor = await localdb.GetItemAsStringAsync("theme_color");
+        if (string.IsNullOrEmpty(Core.PrimaryColor))
+        {
+            Core.PrimaryColor = "#4876abff";
+            await localdb.SetItemAsStringAsync("theme_color", Core.PrimaryColor);
+        }
+        Core.defaultTheme = new MudTheme()
+        {
+            Palette = new Palette()
+            {
+                AppbarBackground = Core.PrimaryColor,
+                Primary = Core.PrimaryColor,
+                DrawerText = "#ffffff",
+                HoverOpacity = 0.3,
+            }
+        };
+        currentTheme = Core.defaultTheme;
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    async Task DarkMode()
+    {
+        if (currentTheme == Core.defaultTheme)
+        {
+            currentTheme = darkTheme;
+            await localdb.SetItemAsStringAsync("darkmode", Guid.NewGuid().ToString());
+        }
+        else
+        {
+            currentTheme = Core.defaultTheme;
+            await localdb.RemoveItemAsync("darkmode");
+        }
+    }
+    private static string primaryColor = "#eeeeee";
+    private static string primaryDarkColor = "#000000";
+    MudTheme currentTheme = new MudTheme();
+
+    MudTheme darkTheme = new MudTheme()
+    {
+        Palette = new Palette()
+        {
+            Primary = primaryColor,
+            Info = "#9fb2fc",
+            Black = "#27272f",
+            Background = "#32333d",
+            BackgroundGrey = "#27272f",
+            Surface = "#373740",
+            DrawerBackground = "#27272f",
+            DrawerText = "rgba(255,255,255, 0.50)",
+            DrawerIcon = "rgba(255,255,255, 0.50)",
+            AppbarBackground = "#27272f",
+            AppbarText = "rgba(255,255,255, 0.70)",
+            TextPrimary = "rgba(255,255,255, 0.70)",
+            TextSecondary = "rgba(255,255,255, 0.50)",
+            ActionDefault = "#adadb1",
+            ActionDisabled = "rgba(255,255,255, 0.26)",
+            ActionDisabledBackground = "rgba(255,255,255, 0.12)",
+            Divider = "rgba(255,255,255, 0.12)",
+            DividerLight = "rgba(255,255,255, 0.06)",
+            TableLines = "rgba(255,255,255, 0.12)",
+            LinesDefault = "rgba(255,255,255, 0.12)",
+            LinesInputs = "rgba(255,255,255, 0.3)",
+            TextDisabled = "rgba(255,255,255, 0.2)",
+            Dark = "#41475e"
+        }
+    };
+}
